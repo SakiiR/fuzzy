@@ -76,6 +76,7 @@ def main(argv):
     print(ASCII)
     parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
     parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
+    parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
     parser.add_argument("--threads", "-t", help="Number of threads to be used (default 1)", default=1, type=int)
     parser.add_argument("--headers", "-he", help="Additional HTTP headers, eg: --headers \"foo: bar\" \"Content-Type: application/json\" (default none)", default={}, type=str, nargs="*", action=HeadersAction)
     parser.add_argument("--data", "-d", type=str, default={}, help="Data to send to the website via POST requests, eg: --data \"foo=bar&password=#FUZZ#\" (default none)", action=DataAction)
