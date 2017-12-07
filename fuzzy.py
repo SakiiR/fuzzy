@@ -18,7 +18,10 @@ ASCII = """
 {}
 {}  An other web fuzzer (  https://sakiir.ovh  )
 {}  - SakiiR
-"""
+{}
+{} /!\\ Use the #FUZZ# tag in your headers/datas/url to fuzz /!\\
+{}
+{}"""
 
 
 LINES = len(ASCII.splitlines())
@@ -65,7 +68,7 @@ class IntListAction(argparse.Action):
         for code in value.split(","):
             try:
                 codes.append(int(code))
-            except Exception:
+            except ValueError:
                 pass
         setattr(namespace, self.dest, codes)
 
@@ -75,8 +78,9 @@ def main(argv):
     """ Main process """
     print(ASCII)
     parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
-    parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
     parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
+    parser.add_argument("--wordlist", "-w", help="Wordlist to use for the fuzzing", type=argparse.FileType('r'), required=True)
+    parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
     parser.add_argument("--threads", "-t", help="Number of threads to be used (default 1)", default=1, type=int)
     parser.add_argument("--headers", "-he", help="Additional HTTP headers, eg: --headers \"foo: bar\" \"Content-Type: application/json\" (default none)", default={}, type=str, nargs="*", action=HeadersAction)
     parser.add_argument("--data", "-d", type=str, default={}, help="Data to send to the website via POST requests, eg: --data \"foo=bar&password=#FUZZ#\" (default none)", action=DataAction)
