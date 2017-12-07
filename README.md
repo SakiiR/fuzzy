@@ -1,5 +1,7 @@
 # Fuzzy !
 
+![logo](./images/logo.png)
+
 An other python web fuzzer.
 
 It is used to test website URLs with a wordlist.
