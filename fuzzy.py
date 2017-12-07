@@ -6,6 +6,7 @@ import sys
 import argparse
 import random
 from colored import fg, attr
+from fuzzy import Fuzzy
 
 ASCII = """
 {}   ______   __  __     ______     ______     __  __
@@ -73,9 +74,13 @@ class IntListAction(argparse.Action):
         setattr(namespace, self.dest, codes)
 
 
-def main(argv):
+def parse_args(args):
 
-    """ Main process """
+    """ Parse command line args
+
+        :param args: The command line parameters to parse
+    """
+
     print(ASCII)
     parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
     parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
@@ -93,9 +98,11 @@ def main(argv):
     parser.add_argument("--hc", type=str, default=[], action=IntListAction, help="Hide given status code responses eg: --hc \"404, 400\" (default none)")
     parser.add_argument("--ht", type=str, help="Hide responses that match given str (default none)")
     parser.add_argument("--st", type=str, help="Show responses that match given str (default none)")
-    args = parser.parse_args(argv)
-    print(args)
+    return parser.parse_args(args)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    args = parse_args(sys.argv[1:])
+    print(vars(args))
+    fuzzy = Fuzzy(**vars(args))
+    fuzzy.loop()
