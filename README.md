@@ -1,9 +1,8 @@
-# Fuzzy !
-
 <p align="center">
   <img width="500" src="./images/logo.png">
 </p>
 
+# Fuzzy !
 
 An other python web fuzzer.
 
