@@ -5,5 +5,10 @@ class Request(object):
 
     """ The request class used to send HTTP request and storing the result """
 
-    pass
+    def __init__(self, url, headers={}, proxies=(), data={}, verb="GET"):
 
+        self._url = url
+        self._headers = headers
+        self._proxies = proxies
+        self._data = data
+        self._verb = verb
