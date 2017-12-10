@@ -5,8 +5,10 @@
 import sys
 import argparse
 import random
+import pprint
 from colored import fg, attr
 from fuzzy import Fuzzy
+from fuzzy.logging import configure_logging
 
 ASCII = """
 {}   ______   __  __     ______     ______     __  __
@@ -86,11 +88,11 @@ def parse_args(args):
     parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
     parser.add_argument("--wordlist", "-w", help="Wordlist to use for the fuzzing", type=argparse.FileType('r'), required=True)
     parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
-    parser.add_argument("--threads", "-t", help="Number of threads to be used (default 1)", default=1, type=int)
+    parser.add_argument("--tag", "-t", help="Fuzzing tag to use (default #FUZZ#)", default="#FUZZ#", type=str)
+    parser.add_argument("--limit", "-l", help="Number of tasks to be used (default 1)", default=1, type=int)
     parser.add_argument("--headers", "-he", help="Additional HTTP headers, eg: --headers \"foo: bar\" \"Content-Type: application/json\" (default none)", default={}, type=str, nargs="*", action=HeadersAction)
     parser.add_argument("--data", "-d", type=str, default={}, help="Data to send to the website via POST requests, eg: --data \"foo=bar&password=#FUZZ#\" (default none)", action=DataAction)
     parser.add_argument("--verbose", "-v", type=bool, help="Verbose mode - Display more information (default false)", const=True, nargs="?", default=False)
-    parser.add_argument("--proxies", "-p", type=str, default=[], help="Simple http proxies to use (default none)")
     parser.add_argument("--timeout", "-ti", type=int, default=3000, help="Max timeout duration in ms (default 3000ms)")
     parser.add_argument("--report", "-r", type=argparse.FileType('w'), help="Report file to write in (default none)")
 
@@ -103,6 +105,9 @@ def parse_args(args):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
-    print(vars(args))
+    if args.verbose:
+        print("[~] Configuration : ")
+        pprint.pprint(vars(args))
     fuzzy = Fuzzy(**vars(args))
+    configure_logging(verbose=args.verbose, report=args.report)
     fuzzy.loop()
