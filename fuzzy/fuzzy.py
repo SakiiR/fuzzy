@@ -152,4 +152,6 @@ class Fuzzy(object):
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
-            log.warning("Ending !")
+            pass
+        Printer.end()
+        log.warning("Ending !")

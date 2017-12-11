@@ -20,12 +20,18 @@ class Printer(object):
 
         """ Display an entry in the table """
 
-        log.warning("|{}|{}|{}|{}".format(
-            url[:34] + ((33 - len(url)) * " "),
+        log.warning("|%s|%s|%s|%s|" % (
+            url[:34] + ((34 - len(url)) * " "),
             code[:9] + ((9 - len(code)) * " "),
-            code[:24] + ((24 - len(timing)) * " "),
-            code[:16] + ((16 - len(code)) * " "),
+            timing[:24] + ((24 - len(timing)) * " "),
+            size[:16] + ((16 - len(size)) * " "),
         ))
 
+    @classmethod
+    def end(cls):
+
+        """ End the table """
+
+        log.info("+----------------------------------+---------+------------------------+----------------+")
 
 
