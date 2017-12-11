@@ -74,7 +74,7 @@ class Fuzzy(object):
         start = time.time()
         if not self._disable_progress:
             self._p.status('{}/{} {}% {}'.format(
-                self._queue.qsize(),
+                self._total_requests - self._queue.qsize(),
                 self._total_requests,
                 100 - (self._queue.qsize() * 100 / self._total_requests),
                 request._url,
@@ -83,7 +83,8 @@ class Fuzzy(object):
         spent = time.time() - start
         content = await self.response_content(response)
         if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
-            Printer.one(request._url, str(response.status), str(spent), str(len(content)))
+            color = Printer.get_code_color(response.status)
+            Printer.one(request._url, str(response.status), str(spent), str(len(content)), color)
 
     async def consumer(self):
 
