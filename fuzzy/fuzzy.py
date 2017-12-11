@@ -2,20 +2,26 @@
 
 import asyncio
 import aiohttp
+import time
+import logging
+from pwn import log
 from .request import Request
 from .utils import replace_kv_dict
+from .matching import Matching
+from .printer import Printer
 
 def exception_handler(loop, context):
 
     """ Asyncio loop exception handler """
 
-    print("Exception occured: {}".format(context['exception']))
+    if 'exception' in context:
+        log.warning("Exception occured: {}".format(context['exception']))
 
 class Fuzzy(object):
 
     """ Fuzzy main object used to asm the others """
 
-    def __init__(self, url, wordlist, verb, limit, headers, data, verbose, timeout, report, hc, ht, st, tag):
+    def __init__(self, url, wordlist, verb, limit, headers, data, verbose, timeout, report, hc, ht, st, tag, disable_progress):
 
         """ Constructor, store the configuration variable to the current object """
 
@@ -26,6 +32,7 @@ class Fuzzy(object):
         self._headers = headers
         self._tag = tag
         self._data = data
+        self._disable_progress = disable_progress
         self._verbose = verbose
         self._timeout = timeout
         self._report = report
@@ -45,14 +52,38 @@ class Fuzzy(object):
         replace_kv_dict(new_data, self._tag, word)
         # replace URL
         url = self._url.replace(self._tag, word)
-        return Request(url=url, headers=new_headers, data=new_data, verb=self._verb)
+        return Request(url=url, headers=new_headers, data=new_data, verb=self._verb, timeout=self._timeout)
+
+    async def response_content(self, response):
+
+        """ Read all the content from the HTTP response """
+
+        content = b""
+        chunk_size = 1024
+        while True:
+            chunk = await response.content.read(chunk_size)
+            if not chunk:
+                break
+            content += chunk
+        return content.decode("utf-8")
 
     async def call_request(self, request):
 
         """ Process the given request and display the result """
 
-        print("Processing request: {}".format(request))
-        await asyncio.sleep(1)
+        start = time.time()
+        if not self._disable_progress:
+            self._p.status('{}/{} {}% {}'.format(
+                self._queue.qsize(),
+                self._total_requests,
+                100 - (self._queue.qsize() * 100 / self._total_requests),
+                request._url,
+            ))
+        response = await request.process()
+        spent = time.time() - start
+        content = await self.response_content(response)
+        if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
+            Printer.one(request._url, str(response.status), str(spent), str(len(content)))
 
     async def consumer(self):
 
@@ -93,14 +124,18 @@ class Fuzzy(object):
 
         self._queue = asyncio.Queue()
         if not await self.check_availibity():
-            print("[-] Url is not available .. exiting")
+            log.warning("Url is not available .. exiting")
             return False
-        print("[+] Url Available !")
-        print("[+] Filling tasks queue !")
+        log.success("Url Available !")
+        log.info("Filling tasks queue !")
         await self.fill_queue()
-        print("[+] Tasks queue ready !")
+        log.success("Tasks queue ready !")
         # TODO: Launch the tasks
-        print("[+] Launching {} requests ..".format(self._queue.qsize()))
+        self._total_requests = self._queue.qsize()
+        log.info("Launching {} requests ..".format(self._total_requests))
+        if not self._disable_progress:
+            self._p = log.progress('Status')
+        Printer.first()
         coros = (self.consumer() for _ in range(self._limit))
         task = self.loop.create_task(asyncio.gather(*coros))
         await self._queue.join()
@@ -114,4 +149,7 @@ class Fuzzy(object):
         self.loop = asyncio.get_event_loop()
         self.loop.set_exception_handler(exception_handler)
         self.loop.create_task(self.process())
-        self.loop.run_forever()
+        try:
+            self.loop.run_forever()
+        except KeyboardInterrupt:
+            log.warning("Ending !")
