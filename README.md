@@ -82,6 +82,8 @@ $ export HTTP_PROXY localhost:8080
 $ export HTTPS_PROXY localhost:8080
 ```
 
+Unfortunately, aiohttp is not able to handler https proxies now.
+
 For fish, I am currently using this script for my prompt:
 
 ```sh
