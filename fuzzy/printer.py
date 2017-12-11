@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from colored import fg, attr
 from pwn import log
 
 class Printer(object):
@@ -16,13 +17,29 @@ class Printer(object):
         log.info("+----------------------------------+---------+------------------------+----------------+")
 
     @classmethod
-    def one(cls, url, code, timing, size):
+    def get_code_color(cls, code):
+
+        """ Retrieve the HTTP status code color """
+
+        color = 255
+        if code in range(200, 299):
+            color = 77
+        elif code in range(300, 399):
+            color = 169
+        elif code in range(400, 499):
+            color = 215
+        elif code in range(500, 599):
+            color = 9
+        return color
+
+    @classmethod
+    def one(cls, url, code, timing, size, color):
 
         """ Display an entry in the table """
 
-        log.warning("|%s|%s|%s|%s|" % (
+        log.warning("|{}|{}{}{}|{}|{}|".format(
             url[:34] + ((34 - len(url)) * " "),
-            code[:9] + ((9 - len(code)) * " "),
+            fg(color) , code[:9] + ((9 - len(code)) * " ") , attr('reset'),
             timing[:24] + ((24 - len(timing)) * " "),
             size[:16] + ((16 - len(size)) * " "),
         ))
