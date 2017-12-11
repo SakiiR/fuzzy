@@ -22,6 +22,13 @@ An effective fuzzer generates semi-valid inputs that are "valid enough" in that 
 
 [![asciicast](https://asciinema.org/a/152123.png)](https://asciinema.org/a/152123)
 
+## Install
+
+* Clone the project
+* `pip install -r requirements.txt`
+* `./fuzzy.py --help`
+
+TODO: setup.py `pip install fuzzy`
 ## Usage
 
 ```sh
