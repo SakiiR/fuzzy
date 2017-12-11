@@ -18,6 +18,10 @@ An effective fuzzer generates semi-valid inputs that are "valid enough" in that 
 - Wikipedia
 ```
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/152121.png)](https://asciinema.org/a/152121)
+
 ## Usage
 
 ```sh
