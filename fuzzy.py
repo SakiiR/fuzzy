@@ -9,6 +9,7 @@ import pprint
 from colored import fg, attr
 from fuzzy import Fuzzy
 from fuzzy.logging import configure_logging
+from pwn import log
 
 ASCII = """
 {}   ______   __  __     ______     ______     __  __
@@ -95,6 +96,7 @@ def parse_args(args):
     parser.add_argument("--verbose", "-v", type=bool, help="Verbose mode - Display more information (default false)", const=True, nargs="?", default=False)
     parser.add_argument("--timeout", "-ti", type=int, default=3000, help="Max timeout duration in ms (default 3000ms)")
     parser.add_argument("--report", "-r", type=argparse.FileType('w'), help="Report file to write in (default none)")
+    parser.add_argument("--disable-progress", "-dp", type=bool, help="Disable progress logging ( pwntools )", const=True, nargs="?", default=False)
 
     # Filters
     parser.add_argument("--hc", type=str, default=[], action=IntListAction, help="Hide given status code responses eg: --hc \"404, 400\" (default none)")
@@ -106,7 +108,7 @@ def parse_args(args):
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
     if args.verbose:
-        print("[~] Configuration : ")
+        log.info("[~] Configuration : ")
         pprint.pprint(vars(args))
     fuzzy = Fuzzy(**vars(args))
     configure_logging(verbose=args.verbose, report=args.report)

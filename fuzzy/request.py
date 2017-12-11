@@ -8,15 +8,16 @@ class Request(object):
 
     """ The request class used to send HTTP request and storing the result """
 
-    def __init__(self, url, headers={}, data={}, verb="GET"):
+    def __init__(self, url, headers={}, data={}, verb="GET", timeout=0):
 
         self._url = url
         self._headers = headers
         self._data = data
         self._verb = verb
+        self._timeout = timeout
 
     async def process(self):
-        async with aiohttp.ClientSession(headers=self._headers, trust_env=True) as session:
+        async with aiohttp.ClientSession(headers=self._headers, trust_env=True, conn_timeout=self._timeout) as session:
             verbs = {
                 'GET': session.get,
                 'HEAD': session.head,
