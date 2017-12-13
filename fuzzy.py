@@ -91,7 +91,7 @@ def parse_args(args):
     parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
     parser.add_argument("--tag", "-t", help="Fuzzing tag to use (default #FUZZ#)", default="#FUZZ#", type=str)
     parser.add_argument("--limit", "-l", help="Number of tasks to be used (default 1)", default=1, type=int)
-    parser.add_argument("--delay", "-s", help="Delay time after each requests", default=0, type=float)
+    parser.add_argument("--delay", "-s", help="Delay time after each requests (set --limit to 1)", default=0, type=float)
     parser.add_argument("--headers", "-e", help="Additional HTTP headers, eg: --headers \"foo: bar\" \"Content-Type: application/json\" (default none)", default={}, type=str, nargs="*", action=HeadersAction)
     parser.add_argument("--data", "-d", type=str, default={}, help="Data to send to the website via POST requests, eg: --data \"foo=bar&password=#FUZZ#\" (default none)", action=DataAction)
     parser.add_argument("--verbose", "-v", type=bool, help="Verbose mode - Display more information (default false)", const=True, nargs="?", default=False)
@@ -111,6 +111,8 @@ if __name__ == "__main__":
     if args.verbose:
         log.info("[~] Configuration : ")
         pprint.pprint(vars(args))
+    if args.delay > 0:
+        args.limit = 1
     fuzzy = Fuzzy(**vars(args))
     configure_logging(verbose=args.verbose, report=args.report)
     fuzzy.loop()
