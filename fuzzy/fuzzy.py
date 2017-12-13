@@ -19,6 +19,8 @@ def exception_handler(loop, context):
 
     if 'exception' in context:
         log.warning("Exception occured: {}".format(context['exception']))
+    else:
+        log.warning("Exception occures: {}".format(context))
 
 
 class Fuzzy(object):
@@ -90,7 +92,7 @@ class Fuzzy(object):
         spent = int((time.time() - self._last_start) * 1000)
         if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
-            Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())))
+            Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
         await asyncio.sleep(self._delay)
 
     async def consumer(self):
