@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import requests
+import aiohttp
 
 
 class Request(object):
@@ -17,18 +17,16 @@ class Request(object):
         self._verb = verb
         self._timeout = timeout
 
-    def process(self):
-        verbs = {
-            'GET': requests.get,
-            'HEAD': requests.head,
-            'POST': requests.post,
-            'OPTIONS': requests.options
-        }
-        args = {
-            'headers': self._headers
-        }
-        if len(self._data) > 0 and self._verb == 'POST':
-            args['data'] = data
-        response = verbs[self._verb](self._url, **args)
-        return {'response': response, 'word': self._word}
+    async def process(self):
+        async with aiohttp.ClientSession(headers=self._headers, conn_timeout=self._timeout) as session:
+            verbs = {
+                'GET': session.get,
+                'HEAD': session.head,
+                'POST': session.post,
+                'OPTIONS': session.options
+            }
+            args = {}
+            if len(self._data) > 0 and self._verb == 'POST':
+                args['data'] = data
+            return await verbs[self._verb](self._url, **args)
 
