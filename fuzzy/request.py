@@ -16,7 +16,7 @@ class Request(object):
         self._verb = verb
         self._timeout = timeout
 
-    async def process(self):
+    def process(self):
         verbs = {
             'GET': requests.get,
             'HEAD': requests.head,
