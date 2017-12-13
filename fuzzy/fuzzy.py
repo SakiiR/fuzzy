@@ -3,6 +3,8 @@
 import asyncio
 import time
 import logging
+from requests.exceptions import RequestException
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pwn import log
 from .request import Request
@@ -16,7 +18,7 @@ def exception_handler(loop, context):
     """ Asyncio loop exception handler """
 
     if 'exception' in context:
-        log.warning("Exception occured: {}".format(context['exception'].args))
+        log.warning("Exception occured: {}".format(context['exception']))
 
 
 class Fuzzy(object):
@@ -41,6 +43,9 @@ class Fuzzy(object):
         self._hc = hc
         self._ht = ht
         self._st = st
+        self._max_worker = 4
+        self._requests_did = 0
+        self._requests_todo = 0
 
     def forge_request(self, word):
 
@@ -67,24 +72,30 @@ class Fuzzy(object):
 
         """ Process the given request and display the result """
 
-        start = time.time()
-        started_duration = datetime.now() - self._starttime
-        done_requests = self._total_requests - self._queue.qsize()
-        percent_done = (100 - (self._queue.qsize() * 100 / self._total_requests))
-        if not self._disable_progress:
-            self._p.status('{}/{} {}% {}req/s - {}'.format(
-                done_requests,
-                self._total_requests,
-                int(percent_done),
-                int(done_requests / (started_duration.seconds + 1)),
-                request._url,
-            ))
-        response = await request.process()
-        spent = int((time.time() - start) * 1000)
-        content = self.response_content(response)
-        if Matching.is_matching(response.status_code, content, hc=self._hc, ht=self._ht, st=self._st):
-            color = Printer.get_code_color(response.status_code)
-            Printer.one(request._url, str(response.status_code), str(spent), str(len(content)), color)
+        self._last_start = time.time()
+        def called_request(future):
+
+            """ Callback for the request response """
+
+            self._requests_did += 1
+            response = future.result()
+            self._percent_done = (self._requests_did * 100) / self._requests_todo
+            started_duration = datetime.now() - self._starttime
+            if not self._disable_progress:
+                self._p.status('{}/{} {}% {}req/s - {}'.format(
+                    self._requests_did,
+                    self._requests_todo,
+                    int(self._percent_done),
+                    int(self._requests_did / (started_duration.seconds + 1)),
+                    request._url,
+                ))
+            spent = int((time.time() - self._last_start) * 1000)
+            content = self.response_content(response)
+            if Matching.is_matching(response.status_code, content, hc=self._hc, ht=self._ht, st=self._st):
+                color = Printer.get_code_color(response.status_code)
+                Printer.one(request._url, str(response.status_code), str(spent), str(len(content)), color)
+        f = self.executor.submit(request.process)
+        f.add_done_callback(called_request)
 
     async def consumer(self):
 
@@ -92,28 +103,18 @@ class Fuzzy(object):
 
         while True:
             request = await self._queue.get()
-            await self.call_request(request)
             self._queue.task_done()
-
-    async def check_availibity(self):
-
-        """ Check if the given url is alive """
-
-        request = Request(self._url, self._headers, self._verb)
-        try:
-            response = await request.process()
-        except Exception as e:
-            print(e)
-            response = None
-        return response is not None
+            await self.call_request(request)
 
     async def fill_queue(self):
 
         """ Fill the tasks queue """
 
+        await self._queue.put(self.forge_request(""))
         for word in self._wordlist.read().splitlines():
             request = self.forge_request(word)
             await self._queue.put(request)
+        self._requests_todo = self._queue.qsize()
 
     async def process(self):
 
@@ -125,23 +126,23 @@ class Fuzzy(object):
         """
 
         self._queue = asyncio.Queue()
-        if not await self.check_availibity():
-            log.warning("Url ({}) is not available .. exiting".format(self._url))
-            return False
         log.success("Url Available ! ({})".format(self._url))
         log.info("Filling tasks queue !")
         await self.fill_queue()
         log.success("Tasks queue ready !")
         # TODO: Launch the tasks
-        self._total_requests = self._queue.qsize()
-        log.info("Launching {} requests ..".format(self._total_requests))
+        log.info("Launching {} requests ..".format(self._requests_todo))
         if not self._disable_progress:
             self._p = log.progress('Status')
         Printer.first()
         self._starttime  = datetime.now()
-        coros = (self.consumer() for _ in range(self._limit))
+        coros = (self.consumer() for _ in range(self._max_worker))
         task = self.loop.create_task(asyncio.gather(*coros))
         await self._queue.join()
+        self.executor.shutdown()
+        Printer.end()
+        log.warning("Ending !")
+        time.sleep(1)
         self.loop.stop()
         return True
 
@@ -150,11 +151,10 @@ class Fuzzy(object):
         """ Launch the main fuzzy loop """
 
         self.loop = asyncio.get_event_loop()
+        self.executor = ThreadPoolExecutor(max_workers=self._limit)
         self.loop.set_exception_handler(exception_handler)
         self.loop.create_task(self.process())
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
             pass
-        Printer.end()
-        log.warning("Ending !")
