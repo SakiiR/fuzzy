@@ -135,9 +135,9 @@ class Fuzzy(object):
         coros = (self.consumer() for _ in range(self._limit))
         task = self.loop.create_task(asyncio.gather(*coros))
         await self._queue.join()
+        self.loop.stop()
         Printer.end()
         log.warning("Ending !")
-        self.loop.stop()
         return True
 
     def loop(self):
@@ -150,4 +150,5 @@ class Fuzzy(object):
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
-            pass
+            Printer.end()
+            log.warning("Ending !")
