@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from urllib.parse import urlparse
 from colored import fg, attr
 from pwn import log
+
 
 class Printer(object):
 
@@ -36,12 +38,13 @@ class Printer(object):
     def one(cls, url, code, timing, size, color):
 
         """ Display an entry in the table """
-
+        timing += "ms"
+        path = urlparse(url).path
         log.warning("|{}|{}{}{}|{}|{}|".format(
-            url[:34] + ((34 - len(url)) * " "),
-            fg(color) , code[:9] + ((9 - len(code)) * " ") , attr('reset'),
-            timing[:24] + ((24 - len(timing)) * " "),
-            size[:16] + ((16 - len(size)) * " "),
+            ' ' + path[:33] + ((33 - len(path)) * " "),
+            ' ' + fg(color) , code[:8] + ((8 - len(code)) * " ") , attr('reset'),
+            ' ' + timing[:23] + ((23 - len(timing)) * " "),
+            ' ' + size[:15] + ((15 - len(size)) * " "),
         ))
 
     @classmethod
