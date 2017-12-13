@@ -90,7 +90,7 @@ class Fuzzy(object):
         spent = int((time.time() - self._last_start) * 1000)
         if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
-            Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color)
+            Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())))
         await asyncio.sleep(self._delay)
 
     async def consumer(self):
