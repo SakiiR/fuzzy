@@ -8,8 +8,9 @@ class Request(object):
 
     """ The request class used to send HTTP request and storing the result """
 
-    def __init__(self, url, headers={}, data={}, verb="GET", timeout=0):
+    def __init__(self, url, headers={}, data={}, verb="GET", word=None, timeout=0):
 
+        self._word = word
         self._url = url
         self._headers = headers
         self._data = data
@@ -29,5 +30,5 @@ class Request(object):
         if len(self._data) > 0 and self._verb == 'POST':
             args['data'] = data
         response = verbs[self._verb](self._url, **args)
-        return response
+        return {'response': response, 'word': self._word}
 

@@ -60,7 +60,7 @@ class Fuzzy(object):
         replace_kv_dict(new_data, self._tag, word)
         # replace URL
         url = self._url.replace(self._tag, word)
-        return Request(url=url, headers=new_headers, data=new_data, verb=self._verb, timeout=self._timeout)
+        return Request(url=url, headers=new_headers, data=new_data, verb=self._verb, word=word, timeout=self._timeout)
 
     def response_content(self, response):
 
@@ -79,7 +79,9 @@ class Fuzzy(object):
             """ Callback for the request response """
 
             self._requests_did += 1
-            response = future.result()
+            data = future.result()
+            response = data['response']
+            word = data['word']
             self._percent_done = (self._requests_did * 100) / self._requests_todo
             started_duration = datetime.now() - self._starttime
             if not self._disable_progress:
@@ -88,16 +90,16 @@ class Fuzzy(object):
                     self._requests_todo,
                     int(self._percent_done),
                     int(self._requests_did / (started_duration.seconds + 1)),
-                    request._url,
+                    word,
                 ))
             spent = int((time.time() - self._last_start) * 1000)
             content = self.response_content(response)
             if Matching.is_matching(response.status_code, content, hc=self._hc, ht=self._ht, st=self._st):
                 color = Printer.get_code_color(response.status_code)
-                Printer.one(request._url, str(response.status_code), str(spent), str(len(content)), color)
+                Printer.one("'" + word + "'", str(response.status_code), str(spent), str(len(content)), color)
         f = self.executor.submit(request.process)
-        time.sleep(self._delay)
         f.add_done_callback(called_request)
+        time.sleep(self._delay)
 
     async def consumer(self):
 
