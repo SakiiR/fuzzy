@@ -14,9 +14,9 @@ class Printer(object):
 
         """ Display the first array element """
 
-        log.info("+----------------------------------+---------+------------------------+----------------+")
-        log.info("|              URL                 |  CODE   |          TIMING        |      SIZE      |")
-        log.info("+----------------------------------+---------+------------------------+----------------+")
+        log.info("+----------------------------------+---------+------------------------+----------------+----------------+----------------+")
+        log.info("|              URL                 |  CODE   |          TIMING        |      SIZE      |      WORDS     |      LINES     |")
+        log.info("+----------------------------------+---------+------------------------+----------------+----------------+----------------+")
 
     @classmethod
     def get_code_color(cls, code):
@@ -35,16 +35,18 @@ class Printer(object):
         return color
 
     @classmethod
-    def one(cls, url, code, timing, size, color):
+    def one(cls, url, code, timing, size, color, words, lines):
 
         """ Display an entry in the table """
         timing += "ms"
         path = urlparse(url).path
-        log.warning("|{}|{}{}{}|{}|{}|".format(
+        log.warning("|{}|{}{}{}|{}|{}|{}|{}|".format(
             ' ' + path[:33] + ((33 - len(path)) * " "),
             ' ' + fg(color) , code[:8] + ((8 - len(code)) * " ") , attr('reset'),
             ' ' + timing[:23] + ((23 - len(timing)) * " "),
             ' ' + size[:15] + ((15 - len(size)) * " "),
+            ' ' + words[:15] + ((15 - len(words)) * " "),
+            ' ' + lines[:15] + ((15 - len(lines)) * " "),
         ))
 
     @classmethod
