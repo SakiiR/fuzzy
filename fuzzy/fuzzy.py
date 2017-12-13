@@ -91,6 +91,7 @@ class Fuzzy(object):
         if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
             Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color)
+        await asyncio.sleep(self._delay)
 
     async def consumer(self):
 
@@ -124,7 +125,6 @@ class Fuzzy(object):
         log.info("Filling tasks queue !")
         await self.fill_queue()
         log.success("Tasks queue ready !")
-        # TODO: Launch the tasks
         log.info("Launching {} requests ..".format(self._requests_todo))
         if not self._disable_progress:
             self._p = log.progress('Status')
