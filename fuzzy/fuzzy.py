@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import aiohttp
 import time
 import logging
+from datetime import datetime
 from pwn import log
 from .request import Request
 from .utils import replace_kv_dict
 from .matching import Matching
 from .printer import Printer
 
+
 def exception_handler(loop, context):
 
     """ Asyncio loop exception handler """
 
     if 'exception' in context:
-        log.warning("Exception occured: {}".format(context['exception']))
+        log.warning("Exception occured: {}".format(context['exception'].args))
+
 
 class Fuzzy(object):
 
@@ -54,37 +56,35 @@ class Fuzzy(object):
         url = self._url.replace(self._tag, word)
         return Request(url=url, headers=new_headers, data=new_data, verb=self._verb, timeout=self._timeout)
 
-    async def response_content(self, response):
+    def response_content(self, response):
 
         """ Read all the content from the HTTP response """
 
-        content = b""
-        chunk_size = 1024
-        while True:
-            chunk = await response.content.read(chunk_size)
-            if not chunk:
-                break
-            content += chunk
-        return content.decode("utf-8")
+        return response.content.decode('utf-8')
+
 
     async def call_request(self, request):
 
         """ Process the given request and display the result """
 
         start = time.time()
+        started_duration = datetime.now() - self._starttime
+        done_requests = self._total_requests - self._queue.qsize()
+        percent_done = (100 - (self._queue.qsize() * 100 / self._total_requests))
         if not self._disable_progress:
-            self._p.status('{}/{} {}% {}'.format(
-                self._total_requests - self._queue.qsize(),
+            self._p.status('{}/{} {}% {}req/s - {}'.format(
+                done_requests,
                 self._total_requests,
-                100 - (self._queue.qsize() * 100 / self._total_requests),
+                int(percent_done),
+                int(done_requests / (started_duration.seconds + 1)),
                 request._url,
             ))
         response = await request.process()
-        spent = time.time() - start
-        content = await self.response_content(response)
-        if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
-            color = Printer.get_code_color(response.status)
-            Printer.one(request._url, str(response.status), str(spent), str(len(content)), color)
+        spent = int((time.time() - start) * 1000)
+        content = self.response_content(response)
+        if Matching.is_matching(response.status_code, content, hc=self._hc, ht=self._ht, st=self._st):
+            color = Printer.get_code_color(response.status_code)
+            Printer.one(request._url, str(response.status_code), str(spent), str(len(content)), color)
 
     async def consumer(self):
 
@@ -102,7 +102,8 @@ class Fuzzy(object):
         request = Request(self._url, self._headers, self._verb)
         try:
             response = await request.process()
-        except aiohttp.ClientError as e:
+        except Exception as e:
+            print(e)
             response = None
         return response is not None
 
@@ -125,9 +126,9 @@ class Fuzzy(object):
 
         self._queue = asyncio.Queue()
         if not await self.check_availibity():
-            log.warning("Url is not available .. exiting")
+            log.warning("Url ({}) is not available .. exiting".format(self._url))
             return False
-        log.success("Url Available !")
+        log.success("Url Available ! ({})".format(self._url))
         log.info("Filling tasks queue !")
         await self.fill_queue()
         log.success("Tasks queue ready !")
@@ -137,6 +138,7 @@ class Fuzzy(object):
         if not self._disable_progress:
             self._p = log.progress('Status')
         Printer.first()
+        self._starttime  = datetime.now()
         coros = (self.consumer() for _ in range(self._limit))
         task = self.loop.create_task(asyncio.gather(*coros))
         await self._queue.join()
