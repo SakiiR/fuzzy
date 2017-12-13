@@ -25,7 +25,7 @@ class Fuzzy(object):
 
     """ Fuzzy main object used to asm the others """
 
-    def __init__(self, url, wordlist, verb, limit, headers, data, verbose, timeout, report, hc, ht, st, tag, disable_progress):
+    def __init__(self, url, wordlist, verb, limit, delay, headers, data, verbose, timeout, report, hc, ht, st, tag, disable_progress):
 
         """ Constructor, store the configuration variable to the current object """
 
@@ -33,6 +33,7 @@ class Fuzzy(object):
         self._wordlist = wordlist
         self._verb = verb
         self._limit = limit
+        self._delay = delay
         self._headers = headers
         self._tag = tag
         self._data = data
@@ -95,6 +96,7 @@ class Fuzzy(object):
                 color = Printer.get_code_color(response.status_code)
                 Printer.one(request._url, str(response.status_code), str(spent), str(len(content)), color)
         f = self.executor.submit(request.process)
+        time.sleep(self._delay)
         f.add_done_callback(called_request)
 
     async def consumer(self):
