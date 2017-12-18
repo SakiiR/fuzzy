@@ -27,7 +27,7 @@ class Fuzzy(object):
 
     """ Fuzzy main object used to asm the others """
 
-    def __init__(self, url, wordlist, verb, limit, delay, headers, data, verbose, timeout, report, hc, ht, st, tag, disable_progress):
+    def __init__(self, url, wordlist, verb, limit, delay, headers, data, verbose, timeout, report, hc, sc, ht, st, tag, disable_progress):
 
         """ Constructor, store the configuration variable to the current object """
 
@@ -44,6 +44,7 @@ class Fuzzy(object):
         self._timeout = timeout
         self._report = report
         self._hc = hc
+        self._sc = sc
         self._ht = ht
         self._st = st
         self._requests_did = 0
@@ -90,7 +91,7 @@ class Fuzzy(object):
                 int(self._requests_did / (started_duration.seconds + 1)),
                 request._word,
             ))
-        if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
+        if Matching.is_matching(response.status, content, hc=self._hc, sc=self._sc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
             Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
         if self._delay > 0:
