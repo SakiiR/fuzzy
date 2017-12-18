@@ -13,15 +13,6 @@ from .matching import Matching
 from .printer import Printer
 
 
-def exception_handler(loop, context):
-
-    """ Asyncio loop exception handler """
-
-    if 'exception' in context:
-        log.warning("Exception occured: {}".format(context['exception']))
-    else:
-        log.warning("Exception occures: {}".format(context))
-
 
 class Fuzzy(object):
 
@@ -49,6 +40,16 @@ class Fuzzy(object):
         self._st = st
         self._requests_did = 0
         self._requests_todo = 0
+
+    def exception_handler(self, loop, context):
+
+        """ Asyncio loop exception handler """
+
+        if self._verbose:
+            if 'exception' in context:
+                log.warning("Exception occured: {}".format(context['exception']))
+            else:
+                log.warning("Exception occures: {}".format(context))
 
     def forge_request(self, word):
 
@@ -138,20 +139,16 @@ class Fuzzy(object):
         coros = (self.consumer() for _ in range(self._limit))
         task = self.loop.create_task(asyncio.gather(*coros))
         await self._queue.join()
-        self.loop.stop()
-        Printer.end()
-        log.warning("Ending !")
-        return True
 
     def loop(self):
 
         """ Launch the main fuzzy loop """
 
         self.loop = asyncio.get_event_loop()
-        self.loop.set_exception_handler(exception_handler)
-        self.loop.create_task(self.process())
+        self.loop.set_exception_handler(self.exception_handler)
         try:
-            self.loop.run_forever()
+            self.loop.run_until_complete(self.process())
         except KeyboardInterrupt:
-            Printer.end()
-            log.warning("Ending !")
+            pass
+        Printer.end()
+        log.warning("Ending !")
