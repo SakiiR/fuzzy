@@ -3,6 +3,6 @@
 import sys
 from .cli import FuzzyCLI
 
-
-FuzzyCLI.main(sys.argv)
+def main():
+    FuzzyCLI.main(sys.argv)
 

@@ -75,12 +75,13 @@ class Fuzzy(object):
         """ Process the given request and display the result """
 
         self._last_start = time.time()
-        response = await request.process()
+        data = await request.process()
+        response = data['response']
+        content = data['text']
         self._queue.task_done()
         self._requests_did += 1
         self._percent_done = (self._requests_did * 100) / self._requests_todo
         started_duration = datetime.now() - self._starttime
-        content = await self.response_content(response)
         if not self._disable_progress:
             self._p.status('{}/{} {}% {}req/s - {}'.format(
                 self._requests_did,
@@ -93,7 +94,8 @@ class Fuzzy(object):
         if Matching.is_matching(response.status, content, hc=self._hc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
             Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
-        await asyncio.sleep(self._delay)
+        if self._delay > 0:
+            await asyncio.sleep(self._delay)
 
     async def consumer(self):
 
