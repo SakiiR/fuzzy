@@ -4,7 +4,14 @@ import asyncio
 import time
 import logging
 from datetime import datetime
-from pwn import log
+try:
+    from pwn import log
+except:
+    print("You should install python3-pwntools log module !")
+    print(">apt-get update")
+    print(">apt-get install python3 python3-dev python3-pip git")
+    print(">pip3 install --upgrade git+https://github.com/arthaud/python3-pwntools.git")
+    exit()
 from .request import Request
 from .utils import replace_kv_dict
 from .matching import Matching
