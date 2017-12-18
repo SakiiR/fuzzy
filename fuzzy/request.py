@@ -2,7 +2,7 @@
 
 import asyncio
 import aiohttp
-
+import async_timeout
 
 class Request(object):
 
@@ -28,5 +28,10 @@ class Request(object):
             args = {}
             if len(self._data) > 0 and self._verb == 'POST':
                 args['data'] = data
-            return await verbs[self._verb](self._url, **args)
+            with async_timeout.timeout(10):
+                async with verbs[self._verb](self._url, **args) as response:
+                    return {
+                        'response': response,
+                        'text': await response.text()
+                    }
 
