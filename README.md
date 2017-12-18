@@ -26,11 +26,15 @@ An effective fuzzer generates semi-valid inputs that are "valid enough" in that 
 
 ## Install
 
+### Local
+
 * Clone the project
 * `pip install -r requirements.txt`
 * `./fuzzy.py --help`
 
-TODO: setup.py `pip install fuzzy`
+### Pip
+
+* `pip install fuzzyfuzzer`
 
 ## Usage
 
