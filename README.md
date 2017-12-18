@@ -31,7 +31,10 @@ An effective fuzzer generates semi-valid inputs that are "valid enough" in that 
 * `./fuzzy.py --help`
 
 TODO: setup.py `pip install fuzzy`
+
 ## Usage
+
+![usage](./images/1.png)
 
 ```sh
 $ fuzzy --url 'http://localhost:8000/#FUZZ#' --wordlist '~/wordlists/rockyou.txt'
