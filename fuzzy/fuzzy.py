@@ -3,8 +3,6 @@
 import asyncio
 import time
 import logging
-from requests.exceptions import RequestException
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pwn import log
 from .request import Request
