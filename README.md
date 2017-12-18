@@ -22,7 +22,7 @@ An effective fuzzer generates semi-valid inputs that are "valid enough" in that 
 
 :fireworks:
 
-[![asciicast](https://asciinema.org/a/152128.png)](https://asciinema.org/a/152128)
+[![asciicast](https://asciinema.org/a/153308.png)](https://asciinema.org/a/153308)
 
 ## Install
 
