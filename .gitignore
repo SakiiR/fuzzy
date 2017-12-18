@@ -2,5 +2,6 @@
 __pycache__/
 .ropeproject/
 fuzzyfuzzer.egg-info/
+fuzzy.egg-info/
 build/
 dist/
