@@ -1,0 +1,3 @@
+[console_scripts]
+fuzzy = fuzzy.__main__:main
+
