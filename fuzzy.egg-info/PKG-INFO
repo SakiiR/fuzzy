@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: fuzzy
+Version: 0.0.3
+Summary: Fuzzy - An other web fuzzer
+Home-page: https://github.com/SakiiR/fuzzy
+Author: SakiiR SakiiR (@SakiiR)
+Author-email: UNKNOWN
+License: UNKNOWN
+Description-Content-Type: UNKNOWN
+Description: It is used to test website URLs with a wordlist.
+Platform: UNKNOWN

@@ -1,15 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = "fuzzy",
-    packages="fuzzy",
-    package_dir={'fuzzy': 'fuzzy'},
+    name = "fuzzyfuzzer",
+    packages=["fuzzy"],
     entry_points={
         'console_scripts': [
             'fuzzy = fuzzy.__main__:main',
         ]
     },
-    version = '0.0.3',
+    version = '0.0.4',
     description = "Fuzzy - An other web fuzzer",
     long_description = "It is used to test website URLs with a wordlist.",
     author = "SakiiR SakiiR (@SakiiR)",
