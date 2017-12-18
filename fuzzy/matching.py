@@ -6,7 +6,7 @@ class Matching(object):
     """ Is used to match the response to keep or to leave """
 
     @classmethod
-    def is_matching(cls, status, content, hc=[], ht=None, st=None):
+    def is_matching(cls, status, content, hc=[], ht=None, st=None, sc=[]):
 
         """ This classmethod is used to determinate if the given response match the given filters
 
@@ -27,6 +27,10 @@ class Matching(object):
         # Show if st is in response content
         if st is not None:
             if st in content:
+                return True
+        # Show if status code is in hc array
+        if len(sc) > 0:
+            if status in sc:
                 return True
         # Hide if status code is in hc array
         if len(hc) > 0:

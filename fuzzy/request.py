@@ -28,6 +28,7 @@ class Request(object):
             args = {}
             if len(self._data) > 0 and self._verb == 'POST':
                 args['data'] = data
+                self._verb = 'POST'
             with async_timeout.timeout(10):
                 async with verbs[self._verb](self._url, **args) as response:
                     return {
