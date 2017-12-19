@@ -133,7 +133,7 @@ class Fuzzy(object):
 
         while not self._queue.empty():
             await self._queue.pop()
-            self._queue.task_done()
+        self._queue.task_done()
         self.loop.stop()
 
     async def handle_request_exceptions(self, request):
@@ -149,7 +149,7 @@ class Fuzzy(object):
             data = await request.process()
         except aiohttp.InvalidURL as e:
             log.warning("Invalid URL, exiting ..")
-            self.stop()
+            await self.stop()
         except aiohttp.ClientConnectionError as e:
             self.status(0, request._word, "Request failed !")
             color = Printer.get_code_color("ERROR")
