@@ -93,7 +93,7 @@ class FuzzyCLI(object):
         parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
         parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
         parser.add_argument("--wordlist", "-w", help="Wordlist to use for the fuzzing", type=argparse.FileType('r'), required=True)
-        parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "TRACE", "OPTION"], default="GET", type=str)
+        parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "POST", "OPTIONS", "PUT"], default="GET", type=str)
         parser.add_argument("--tag", "-t", help="Fuzzing tag to use (default #FUZZ#)", default="#FUZZ#", type=str)
         parser.add_argument("--limit", "-l", help="Number of tasks to be used (default 1)", default=1, type=int)
         parser.add_argument("--delay", "-s", help="Delay time after each requests (set --limit to 1)", default=0.0, type=float)
