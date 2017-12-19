@@ -49,6 +49,14 @@ $ fuzzy --url 'http://localhost:8000/#FUZZ#' --wordlist '~/wordlists/rockyou.txt
 The fuzzer is by default sending only one worker to consume the tasks queue.
 The `--limit` option give you a way to configure this amount of worker consuming the task queue.
 
+### Safe mode
+
+Sending 1 request each 0.2 seconds (200 milliseconds)
+
+```sh
+$ fuzzy --url 'http://localhost:8000/#FUZZ#' --wordlist '~/wordlists/rockyou.txt'  --limit 1 --delay 0.2
+```
+
 ## Fuzzing tag
 
 By default, the fuzzing tag is `#FUZZ#` but you can change it by whateve you want using the `--tag` option.
