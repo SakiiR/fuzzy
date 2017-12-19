@@ -5,7 +5,11 @@ import logging
 
 def configure_logging(verbose=False, report=None):
 
-    """ Configure the logging module """
+    """ Configure the logging module
+
+        :param verbose: Verbose mode boolean
+        :param report: Report mode to file boolean
+    """
 
     if report is not None:
         loglevel = logging.DEBUG if verbose else logging.INFO
