@@ -21,7 +21,10 @@ class Printer(object):
     @classmethod
     def get_code_color(cls, code):
 
-        """ Retrieve the HTTP status code color """
+        """ Retrieve the HTTP status code color
+
+            :param code: The code to retrieve the color from.
+        """
 
         color = 255
         if code in range(200, 299):
@@ -35,13 +38,23 @@ class Printer(object):
         return color
 
     @classmethod
-    def one(cls, url, code, timing, size, color, words, lines, word_present):
+    def one(cls, word, code, timing, size, color, words, lines, word_present):
 
-        """ Display an entry in the table """
+        """ Display an entry in the table
+
+            :param word: The word found
+            :param code: The HTTP status code from the response
+            :param timing: The time of the request execution
+            :param size: Byte size of the response
+            :param color: The HTTP status code to apply
+            :param words: The words count in the response content
+            :param lines: The lines count in the response content
+            :param word_present: Is the word present in the response content
+        """
+
         timing += "ms"
-        path = urlparse(url).path
         out = ("|{}|{}{}{}|{}|{}|{}|{}|{}|".format(
-            ' ' + path[:33] + ((33 - len(path)) * " "),
+            ' ' + word[:33] + ((33 - len(word)) * " "),
             ' ' + fg(color) , code[:8] + ((8 - len(code)) * " ") , attr('reset'),
             ' ' + timing[:23] + ((23 - len(timing)) * " "),
             ' ' + size[:15] + ((15 - len(size)) * " "),

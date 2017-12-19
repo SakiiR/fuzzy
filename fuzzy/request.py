@@ -18,13 +18,16 @@ class Request(object):
         self._timeout = timeout
 
     async def process(self):
+
+        """ Process the HTTP request  """
+
         async with aiohttp.ClientSession(headers=self._headers, conn_timeout=self._timeout) as session:
             verbs = {
                 'GET': session.get,
                 'HEAD': session.head,
                 'POST': session.post,
-                'OPTIONS': session.options
-                'PUT': session.options
+                'OPTIONS': session.options,
+                'PUT': session.options,
             }
             args = {}
             if len(self._data) > 0 and self._verb == 'POST':
