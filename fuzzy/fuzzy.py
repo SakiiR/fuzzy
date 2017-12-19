@@ -237,8 +237,10 @@ class Fuzzy(object):
         except KeyboardInterrupt as e:
             Printer.end()
             log.warning("Interrupted !")
-            print_exceptions()
+            if self._verbose:
+                print_exceptions()
             exit()
         Printer.end()
         log.warning("Ending !")
-        print_exceptions()
+        if self._verbose:
+            print_exceptions()
