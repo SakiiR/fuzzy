@@ -52,7 +52,6 @@ class IntListAction(argparse.Action):
 
 class FuzzyCLI(object):
 
-
     """ Class use to handle fuzzy CLI """
 
     @classmethod
@@ -83,11 +82,13 @@ class FuzzyCLI(object):
         draw = draw.format(*formater)
         print(draw)
 
-
     @classmethod
     def parse_args(cls, argv):
 
-        """ Fuzzy Argument parser  """
+        """ Fuzzy Argument parser
+
+            :param argv: Command lines argument list.
+        """
 
         cls.display_header()
         parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
@@ -114,7 +115,10 @@ class FuzzyCLI(object):
     @classmethod
     def main(cls, argv):
 
-        """ Fuzzy main process """
+        """ Fuzzy main process
+
+            :param argv: Command lines argument list.
+        """
 
         args = cls.parse_args(argv[1:])
         if args.verbose:
@@ -125,4 +129,3 @@ class FuzzyCLI(object):
         fuzzy = Fuzzy(**vars(args))
         configure_logging(verbose=args.verbose, report=args.report)
         fuzzy.loop()
-
