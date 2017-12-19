@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import aiohttp
 import asyncio
 import time
 import logging
@@ -16,6 +17,34 @@ from .request import Request
 from .utils import replace_kv_dict
 from .matching import Matching
 from .printer import Printer
+
+
+g_exceptions = []
+
+
+def print_exceptions():
+
+    """ Print exceptions list """
+
+    global g_exceptions
+    for e in g_exceptions:
+        log.warn("Exception occured : {}".format(e))
+
+
+def exception_handler(loop, context):
+
+    """ Asyncio loop exception handler
+
+
+        :param loop: The main asyncio loop.
+        :param context: The exception context.
+    """
+
+    global g_exceptions
+    if 'exception' in context:
+        g_exceptions.append(context['exception'])
+    else:
+        g_exceptions.append(context)
 
 
 class Fuzzy(object):
@@ -58,20 +87,6 @@ class Fuzzy(object):
         self._requests_did = 0
         self._requests_todo = 0
 
-    def exception_handler(self, loop, context):
-
-        """ Asyncio loop exception handler
-
-
-            :param loop: The main asyncio loop.
-            :param context: The exception context.
-        """
-
-        if self._verbose:
-            if 'exception' in context:
-                log.warning("Exception occured: {}".format(context['exception']))
-            else:
-                log.warning("Exception occures: {}".format(context))
 
     def forge_request(self, word):
 
@@ -81,33 +96,65 @@ class Fuzzy(object):
         """
 
         # replace Headers
-        new_headers = {k: v for (k, v) in self._headers.items()}
-        replace_kv_dict(new_headers, self._tag, word)
+        headers = {k: v for (k, v) in self._headers.items()}
+        replace_kv_dict(headers, self._tag, word)
         # replace Data
-        new_data = {k: v for (k, v) in self._data.items()}
-        replace_kv_dict(new_data, self._tag, word)
+        data = ""
+        if len(self._data) > 0:
+            data = self._data.replace(self._tag, word)
         # replace URL
         url = self._url.replace(self._tag, word)
-        return Request(url=url, headers=new_headers, data=new_data, verb=self._verb, word=word, timeout=self._timeout)
+        return Request(url=url, headers=headers, data=data, verb=self._verb, word=word, timeout=self._timeout)
 
-    def status(self, spent, word):
+    def status(self, spent, word, extra=""):
 
         """ Display the progress status to the console
 
             :param spent: The request execution time
             :param word: The word that has been used
+            :param extra Extra text to show
         """
 
         self._requests_did += 1
         self._percent_done = (self._requests_did * 100) / self._requests_todo
         started_duration = datetime.now() - self._starttime
-        self._p.status('{}/{} {}% {}req/s - {}'.format(
+        self._p.status('{}/{} {}% {}req/s - {} - {}'.format(
             self._requests_did,
             self._requests_todo,
             int(self._percent_done),
             int(self._requests_did / (started_duration.seconds + 1)),
             word,
+            extra
         ))
+
+    async def stop(self):
+
+        """ Stop the loop """
+
+        while not self._queue.empty():
+            await self._queue.pop()
+            self._queue.task_done()
+        self.loop.stop()
+
+    async def handle_request_exceptions(self, request):
+
+
+        """ Handle the given requests errors !
+
+            :param request: The request to handle
+        """
+
+        data = None
+        try:
+            data = await request.process()
+        except aiohttp.InvalidURL as e:
+            log.warning("Invalid URL, exiting ..")
+            self.stop()
+        except aiohttp.ClientConnectionError as e:
+            self.status(0, request._word, "Request failed !")
+            color = Printer.get_code_color("ERROR")
+            Printer.one("'" + request._word + "'", "ERROR", "0", "0", color, "0", "0", "N/A")
+        return data
 
     async def call_request(self, request):
 
@@ -117,7 +164,9 @@ class Fuzzy(object):
         """
 
         self._last_start = time.time()
-        data = await request.process()
+        data = await self.handle_request_exceptions(request)
+        if data is None:
+            return
         spent = int((time.time() - self._last_start) * 1000)
         response = data['response']
         content = data['text']
@@ -173,16 +222,23 @@ class Fuzzy(object):
         Printer.first()
         self._starttime = datetime.now()
         await self.trigger_coros()
+        self.loop.stop()
+
 
     def loop(self):
 
         """ Launch the main fuzzy loop """
 
         self.loop = asyncio.get_event_loop()
-        self.loop.set_exception_handler(self.exception_handler)
+        # self.loop.set_debug(True)
+        self.loop.set_exception_handler(exception_handler)
         try:
             self.loop.run_until_complete(self.process())
-        except KeyboardInterrupt:
-            pass
+        except KeyboardInterrupt as e:
+            Printer.end()
+            log.warning("Interrupted !")
+            print_exceptions()
+            exit()
         Printer.end()
         log.warning("Ending !")
+        print_exceptions()

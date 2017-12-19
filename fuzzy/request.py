@@ -4,11 +4,12 @@ import asyncio
 import aiohttp
 import async_timeout
 
+
 class Request(object):
 
     """ The request class used to send HTTP request and storing the result """
 
-    def __init__(self, url, headers={}, data={}, verb="GET", word=None, timeout=0):
+    def __init__(self, url, headers={}, data="", verb="GET", word=None, timeout=0):
 
         self._word = word
         self._url = url
@@ -27,11 +28,11 @@ class Request(object):
                 'HEAD': session.head,
                 'POST': session.post,
                 'OPTIONS': session.options,
-                'PUT': session.options,
+                'PUT': session.put,
             }
             args = {}
-            if len(self._data) > 0 and self._verb == 'POST':
-                args['data'] = data
+            if len(self._data) > 0:
+                args['data'] = self._data
                 if self._verb not in ['POST', 'PUT']:
                     self._verb = 'POST'
             with async_timeout.timeout(10):
@@ -40,4 +41,5 @@ class Request(object):
                         'response': response,
                         'text': await response.text()
                     }
+            return "test"
 
