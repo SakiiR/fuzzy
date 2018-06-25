@@ -53,6 +53,7 @@ class Fuzzy(object):
 
     def __init__(self,
                  url,
+                 url_file,
                  wordlist,
                  verb,
                  limit,
@@ -69,6 +70,7 @@ class Fuzzy(object):
         """ Constructor, store the configuration variable to the current object """
 
         self._url = url
+        self._url_file = url_file
         self._wordlist = wordlist
         self._verb = verb
         self._limit = limit
@@ -88,7 +90,7 @@ class Fuzzy(object):
         self._requests_todo = 0
 
 
-    def forge_request(self, word):
+    def forge_request(self, word, url):
 
         """ Replace the fuzzing tag into the configuration variables
 
@@ -103,8 +105,8 @@ class Fuzzy(object):
         if len(self._data) > 0:
             data = self._data.replace(self._tag, word)
         # replace URL
-        url = self._url.replace(self._tag, word)
-        return Request(url=url, headers=headers, data=data, verb=self._verb, word=word, timeout=self._timeout)
+        nurl = url.replace(self._tag, word)
+        return Request(url=nurl, headers=headers, data=data, verb=self._verb, word=word, timeout=self._timeout)
 
     def status(self, spent, word, extra=""):
 
@@ -174,7 +176,7 @@ class Fuzzy(object):
             self.status(spent, request._word)
         if Matching.is_matching(response.status, content, hc=self._hc, sc=self._sc, ht=self._ht, st=self._st):
             color = Printer.get_code_color(response.status)
-            Printer.one("'" + request._word + "'", str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
+            Printer.one("'{}'".format(request._word if self._url_file is None else request._url), str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
         if self._delay > 0:
             await asyncio.sleep(self._delay)
         self._queue.task_done()
@@ -187,13 +189,26 @@ class Fuzzy(object):
             request = await self._queue.get()
             await self.call_request(request)
 
+    async def _fill_multiple_url(self):
+        words = self._wordlist.read().splitlines()
+        for url in self._url_file.read().splitlines():
+            await self._queue.put(self.forge_request("", url))
+            for word in words:
+                request = self.forge_request(word, url)
+                await self._queue.put(request)
+        self._requests_todo = self._queue.qsize()
+
+
     async def fill_queue(self):
 
         """ Fill the tasks queue """
 
-        await self._queue.put(self.forge_request(""))
+        if self._url_file is not None:
+            await self._fill_multiple_url()
+            return
+        await self._queue.put(self.forge_request("", self._url))
         for word in self._wordlist.read().splitlines():
-            request = self.forge_request(word)
+            request = self.forge_request(word, self._url)
             await self._queue.put(request)
         self._requests_todo = self._queue.qsize()
 
