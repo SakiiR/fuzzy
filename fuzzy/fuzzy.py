@@ -63,7 +63,9 @@ class Fuzzy(object):
                  verbose,
                  timeout,
                  report,
-                 hc, sc, ht, st,
+                 hc, sc, hw, sw,
+                 filter_show,
+                 filter_hide,
                  tag,
                  disable_progress):
 
@@ -84,8 +86,10 @@ class Fuzzy(object):
         self._report = report
         self._hc = hc
         self._sc = sc
-        self._ht = ht
-        self._st = st
+        self._hw = hw
+        self._sw = sw
+        self._filter_show = filter_show
+        self._filter_hide = filter_hide
         self._requests_did = 0
         self._requests_todo = 0
 
@@ -140,7 +144,6 @@ class Fuzzy(object):
 
     async def handle_request_exceptions(self, request):
 
-
         """ Handle the given requests errors !
 
             :param request: The request to handle
@@ -174,9 +177,23 @@ class Fuzzy(object):
         content = data['text']
         if not self._disable_progress:
             self.status(spent, request._word)
-        if Matching.is_matching(response.status, content, hc=self._hc, sc=self._sc, ht=self._ht, st=self._st):
+        if Matching.is_matching(response.status,
+                                content,
+                                hc=self._hc,
+                                sc=self._sc,
+                                hw=self._hw,
+                                sw=self._sw,
+                                a_filters_h=self._filter_hide,
+                                a_filters_s=self._filter_show):
             color = Printer.get_code_color(response.status)
-            Printer.one("'{}'".format(request._word if self._url_file is None else request._url), str(response.status), str(spent), str(len(content)), color, str(len(content.split(' '))), str(len(content.splitlines())), str(request._word in content))
+            Printer.one("'{}'".format(request._word if self._url_file is None else request._url),
+                        str(response.status),
+                        str(spent),
+                        str(len(content)),
+                        color,
+                        str(len(content.split(' '))),
+                        str(len(content.splitlines())),
+                        str(request._word in content))
         if self._delay > 0:
             await asyncio.sleep(self._delay)
         self._queue.task_done()
@@ -197,7 +214,6 @@ class Fuzzy(object):
                 request = self.forge_request(word, url)
                 await self._queue.put(request)
         self._requests_todo = self._queue.qsize()
-
 
     async def fill_queue(self):
 
@@ -239,14 +255,13 @@ class Fuzzy(object):
         await self.trigger_coros()
         self.loop.stop()
 
-
     def loop(self):
 
         """ Launch the main fuzzy loop """
 
         self.loop = asyncio.get_event_loop()
         # self.loop.set_debug(True)
-        self.loop.set_exception_handler(exception_handler)
+        # self.loop.set_exception_handler(exception_handler)
         try:
             self.loop.run_until_complete(self.process())
         except KeyboardInterrupt as e:
