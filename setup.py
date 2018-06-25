@@ -8,7 +8,7 @@ setup(
             'fuzzy = fuzzy.__main__:main',
         ]
     },
-    version = '0.0.13',
+    version = '0.0.14',
     description = "Fuzzy - An other web fuzzer",
     long_description = "It is used to test website URLs with a wordlist.",
     author = "SakiiR SakiiR (@SakiiR)",
