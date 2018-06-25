@@ -92,7 +92,9 @@ class FuzzyCLI(object):
 
         cls.display_header()
         parser = argparse.ArgumentParser(description="Python Web Fuzzer by SakiiR")
-        parser.add_argument("--url", "-u", help="URL to fuzz", type=str, required=True)
+        url_group = parser.add_mutually_exclusive_group(required=True)
+        url_group.add_argument("--url", "-u", help="URL to fuzz", type=str)
+        url_group.add_argument("--url-file", "-f", help="URL File (Containing urls line by line)", type=argparse.FileType('r'))
         parser.add_argument("--wordlist", "-w", help="Wordlist to use for the fuzzing", type=argparse.FileType('r'), required=True)
         parser.add_argument("--verb", "-m", help="HTTP verb to be used (default GET)", choices=["GET", "HEAD", "POST", "OPTIONS", "PUT"], default="GET", type=str)
         parser.add_argument("--tag", "-t", help="Fuzzing tag to use (default #FUZZ#)", default="#FUZZ#", type=str)
