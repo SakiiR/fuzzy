@@ -110,8 +110,11 @@ class FuzzyCLI(object):
         # Filters
         parser.add_argument("--hc", type=str, default=[], action=IntListAction, help="Hide given status code responses eg: --hc \"404, 400\" (default none)")
         parser.add_argument("--sc", type=str, default=[], action=IntListAction, help="Show given status code responses eg: --sc \"404, 400\" (default none)")
-        parser.add_argument("--ht", type=str, help="Hide responses that match given str (default none)")
-        parser.add_argument("--st", type=str, help="Show responses that match given str (default none)")
+        parser.add_argument("--hw", type=str, help="Hide responses that match given str (default none)")
+        parser.add_argument("--sw", type=str, help="Show responses that match given str (default none)")
+
+        parser.add_argument("--filter-show", type=str, help="Advanced filters that shows matched requests", required=False)
+        parser.add_argument("--filter-hide", type=str, help="Advanced filters that hides matched requests", required=False)
         return parser.parse_args(argv)
 
     @classmethod
